@@ -215,7 +215,7 @@ contract GeoEmaAndCumSmaPump is IPump, IInstantaneousPump, ICumulativePump {
         }
     }
 
-    function readInstantaneousReserves(address well) public view returns (uint[] memory emaReserves) {
+    function readInstantaneousReserves(address well, bytes memory) public view returns (uint[] memory emaReserves) {
         bytes32 slot = getSlotForAddress(well);
         uint[] memory reserves = IWell(well).getReserves();
         (uint8 n, uint40 lastTimestamp, bytes16[] memory lastReserves) = slot.readLastReserves();
@@ -251,7 +251,7 @@ contract GeoEmaAndCumSmaPump is IPump, IInstantaneousPump, ICumulativePump {
         reserves = slot.readBytes16(n);
     }
 
-    function readCumulativeReserves(address well) public view returns (bytes memory cumulativeReserves) {
+    function readCumulativeReserves(address well, bytes memory) public view returns (bytes memory cumulativeReserves) {
         bytes16[] memory byteCumulativeReserves = _readCumulativeReserves(well);
         cumulativeReserves = abi.encode(byteCumulativeReserves);
     }
@@ -278,7 +278,8 @@ contract GeoEmaAndCumSmaPump is IPump, IInstantaneousPump, ICumulativePump {
     function readTwaReserves(
         address well,
         bytes calldata startCumulativeReserves,
-        uint startTimestamp
+        uint startTimestamp,
+        bytes memory
     ) public view returns (uint[] memory twaReserves, bytes memory cumulativeReserves) {
         bytes16[] memory byteCumulativeReserves = _readCumulativeReserves(well);
         bytes16[] memory byteStartCumulativeReserves = abi.decode(startCumulativeReserves, (bytes16[]));

@@ -37,7 +37,7 @@ contract PumpUpdateTest is TestHelper {
     }
 
     function test_initialized() public prank(user) {
-        bytes memory startCumulativeReserves = pump.readCumulativeReserves(address(mWell));
+        bytes memory startCumulativeReserves = pump.readCumulativeReserves(address(mWell), new bytes(0));
         uint lastTimestamp = block.timestamp;
         // Last reserves are initialized with initial liquidity
         uint[] memory lastReserves = pump.readLastReserves(address(mWell));
@@ -50,7 +50,7 @@ contract PumpUpdateTest is TestHelper {
         assertApproxEqAbs(lastEmaReserves[1], 2e6, 1);
 
         // EMA reserves are initialized with initial liquidity
-        uint[] memory emaReserves = pump.readInstantaneousReserves(address(mWell));
+        uint[] memory emaReserves = pump.readInstantaneousReserves(address(mWell), new bytes(0));
         assertApproxEqAbs(emaReserves[0], 1e6, 1);
         assertApproxEqAbs(emaReserves[1], 2e6, 1);
 
@@ -59,17 +59,17 @@ contract PumpUpdateTest is TestHelper {
         assertEq(lastCumulativeReserves[0], bytes16(0));
         assertEq(lastCumulativeReserves[1], bytes16(0));
 
-        bytes16[] memory cumulativeReserves = abi.decode(pump.readCumulativeReserves(address(mWell)), (bytes16[]));
+        bytes16[] memory cumulativeReserves = abi.decode(pump.readCumulativeReserves(address(mWell), new bytes(0)), (bytes16[]));
         assertEq(cumulativeReserves[0], bytes16(0));
         assertEq(cumulativeReserves[1], bytes16(0));
 
         vm.expectRevert("Well: No time passed");
-        pump.readTwaReserves(address(mWell), startCumulativeReserves, lastTimestamp);
+        pump.readTwaReserves(address(mWell), startCumulativeReserves, lastTimestamp, new bytes(0));
     }
 
     /// @dev no time has elapsed since prev update = no change
     function test_update_0Seconds() public prank(user) {
-        bytes memory startCumulativeReserves = pump.readCumulativeReserves(address(mWell));
+        bytes memory startCumulativeReserves = pump.readCumulativeReserves(address(mWell), new bytes(0));
         uint lastTimestamp = block.timestamp;
         b[0] = 2e6;
         b[1] = 1e6;
@@ -83,7 +83,7 @@ contract PumpUpdateTest is TestHelper {
         assertApproxEqAbs(lastEmaReserves[0], 1e6, 1);
         assertApproxEqAbs(lastEmaReserves[1], 2e6, 1);
 
-        uint[] memory emaReserves = pump.readInstantaneousReserves(address(mWell));
+        uint[] memory emaReserves = pump.readInstantaneousReserves(address(mWell), new bytes(0));
         assertApproxEqAbs(emaReserves[0], 1e6, 1);
         assertApproxEqAbs(emaReserves[1], 2e6, 1);
 
@@ -91,16 +91,16 @@ contract PumpUpdateTest is TestHelper {
         assertEq(lastCumulativeReserves[0], bytes16(0));
         assertEq(lastCumulativeReserves[1], bytes16(0));
 
-        bytes16[] memory cumulativeReserves = abi.decode(pump.readCumulativeReserves(address(mWell)), (bytes16[]));
+        bytes16[] memory cumulativeReserves = abi.decode(pump.readCumulativeReserves(address(mWell), new bytes(0)), (bytes16[]));
         assertEq(cumulativeReserves[0], bytes16(0));
         assertEq(cumulativeReserves[1], bytes16(0));
 
         vm.expectRevert("Well: No time passed");
-        pump.readTwaReserves(address(mWell), startCumulativeReserves, lastTimestamp);
+        pump.readTwaReserves(address(mWell), startCumulativeReserves, lastTimestamp, new bytes(0));
     }
 
     function test_update_12Seconds() public prank(user) {
-        bytes memory startCumulativeReserves = pump.readCumulativeReserves(address(mWell));
+        bytes memory startCumulativeReserves = pump.readCumulativeReserves(address(mWell), new bytes(0));
         uint lastTimestamp = block.timestamp;
         // After BLOCK_TIME, Pump receives an update
         increaseTime(BLOCK_TIME);
@@ -120,7 +120,7 @@ contract PumpUpdateTest is TestHelper {
         assertEq(lastEmaReserves[1], 1_216_241);
 
         //
-        uint[] memory emaReserves = pump.readInstantaneousReserves(address(mWell));
+        uint[] memory emaReserves = pump.readInstantaneousReserves(address(mWell), new bytes(0));
         assertEq(emaReserves[0], 1_337_697);
         assertEq(emaReserves[1], 1_216_241);
 
@@ -129,12 +129,12 @@ contract PumpUpdateTest is TestHelper {
         assertApproxEqAbs(lastCumulativeReserves[0].div(ABDKMathQuad.fromUInt(12)).pow_2().toUInt(), 1.5e6, 1);
         assertApproxEqAbs(lastCumulativeReserves[1].div(ABDKMathQuad.fromUInt(12)).pow_2().toUInt(), 1e6, 1);
 
-        bytes16[] memory cumulativeReserves = abi.decode(pump.readCumulativeReserves(address(mWell)), (bytes16[]));
+        bytes16[] memory cumulativeReserves = abi.decode(pump.readCumulativeReserves(address(mWell), new bytes(0)), (bytes16[]));
         assertApproxEqAbs(cumulativeReserves[0].div(ABDKMathQuad.fromUInt(12)).pow_2().toUInt(), 1.5e6, 1);
         assertApproxEqAbs(cumulativeReserves[1].div(ABDKMathQuad.fromUInt(12)).pow_2().toUInt(), 1e6, 1);
 
         (uint[] memory twaReserves, bytes memory twaCumulativeReservesBytes) =
-            pump.readTwaReserves(address(mWell), startCumulativeReserves, lastTimestamp);
+            pump.readTwaReserves(address(mWell), startCumulativeReserves, lastTimestamp, new bytes(0));
 
         assertApproxEqAbs(twaReserves[0], 1.5e6, 1);
         assertApproxEqAbs(twaReserves[1], 1e6, 1);
@@ -145,7 +145,7 @@ contract PumpUpdateTest is TestHelper {
     }
 
     function test_12Seconds_increase() public prank(user) {
-        bytes memory startCumulativeReserves = pump.readCumulativeReserves(address(mWell));
+        bytes memory startCumulativeReserves = pump.readCumulativeReserves(address(mWell), new bytes(0));
         uint lastTimestamp = block.timestamp;
         increaseTime(BLOCK_TIME);
         b[0] = 2e6; // 1e6 -> 2e6 = +100%
@@ -154,16 +154,16 @@ contract PumpUpdateTest is TestHelper {
         mWell.setReserves(b);
 
         //
-        uint[] memory emaReserves = pump.readInstantaneousReserves(address(mWell));
+        uint[] memory emaReserves = pump.readInstantaneousReserves(address(mWell), new bytes(0));
         assertEq(emaReserves[0], 1_337_697);
         assertEq(emaReserves[1], 1_216_241);
 
-        bytes16[] memory cumulativeReserves = abi.decode(pump.readCumulativeReserves(address(mWell)), (bytes16[]));
+        bytes16[] memory cumulativeReserves = abi.decode(pump.readCumulativeReserves(address(mWell), new bytes(0)), (bytes16[]));
         assertApproxEqAbs(cumulativeReserves[0].div(ABDKMathQuad.fromUInt(12)).pow_2().toUInt(), 1.5e6, 1);
         assertApproxEqAbs(cumulativeReserves[1].div(ABDKMathQuad.fromUInt(12)).pow_2().toUInt(), 1e6, 1);
 
         (uint[] memory twaReserves, bytes memory twaCumulativeReservesBytes) =
-            pump.readTwaReserves(address(mWell), startCumulativeReserves, lastTimestamp);
+            pump.readTwaReserves(address(mWell), startCumulativeReserves, lastTimestamp, new bytes(0));
 
         assertApproxEqAbs(twaReserves[0], 1.5e6, 1);
         assertApproxEqAbs(twaReserves[1], 1e6, 1);
@@ -174,7 +174,7 @@ contract PumpUpdateTest is TestHelper {
     }
 
     function test_12seconds_update_12Seconds() public prank(user) {
-        bytes memory startCumulativeReserves = pump.readCumulativeReserves(address(mWell));
+        bytes memory startCumulativeReserves = pump.readCumulativeReserves(address(mWell), new bytes(0));
         uint lastTimestamp = block.timestamp;
         // After BLOCK_TIME, Pump receives an update
         increaseTime(BLOCK_TIME);
@@ -184,7 +184,7 @@ contract PumpUpdateTest is TestHelper {
 
         mWell.update(address(pump), b, new bytes(0));
 
-        bytes memory startCumulativeReserves2 = pump.readCumulativeReserves(address(mWell));
+        bytes memory startCumulativeReserves2 = pump.readCumulativeReserves(address(mWell), new bytes(0));
         uint lastTimestamp2 = block.timestamp;
 
         increaseTime(BLOCK_TIME);
@@ -205,7 +205,7 @@ contract PumpUpdateTest is TestHelper {
         assertEq(lastEmaReserves[1], 1_413_741);
 
         //
-        uint[] memory emaReserves = pump.readInstantaneousReserves(address(mWell));
+        uint[] memory emaReserves = pump.readInstantaneousReserves(address(mWell), new bytes(0));
         assertEq(emaReserves[0], 1_085_643);
         assertEq(emaReserves[1], 1_413_741);
 
@@ -214,12 +214,12 @@ contract PumpUpdateTest is TestHelper {
         assertApproxEqAbs(lastCumulativeReserves[0].div(ABDKMathQuad.fromUInt(24)).pow_2().toUInt(), 1_224_744, 1);
         assertApproxEqAbs(lastCumulativeReserves[1].div(ABDKMathQuad.fromUInt(24)).pow_2().toUInt(), 1_224_744, 1);
 
-        bytes16[] memory cumulativeReserves = abi.decode(pump.readCumulativeReserves(address(mWell)), (bytes16[]));
+        bytes16[] memory cumulativeReserves = abi.decode(pump.readCumulativeReserves(address(mWell), new bytes(0)), (bytes16[]));
         assertApproxEqAbs(cumulativeReserves[0].div(ABDKMathQuad.fromUInt(24)).pow_2().toUInt(), 1_224_744, 1);
         assertApproxEqAbs(cumulativeReserves[1].div(ABDKMathQuad.fromUInt(24)).pow_2().toUInt(), 1_224_744, 1);
 
         (uint[] memory twaReserves, bytes memory twaCumulativeReservesBytes) =
-            pump.readTwaReserves(address(mWell), startCumulativeReserves, lastTimestamp);
+            pump.readTwaReserves(address(mWell), startCumulativeReserves, lastTimestamp, new bytes(0));
 
         assertApproxEqAbs(twaReserves[0], 1_224_744, 1);
         assertApproxEqAbs(twaReserves[1], 1_224_744, 1);
@@ -229,7 +229,7 @@ contract PumpUpdateTest is TestHelper {
         assertApproxEqAbs(cumulativeReserves[1].div(ABDKMathQuad.fromUInt(24)).pow_2().toUInt(), 1_224_744, 1);
 
         (twaReserves, twaCumulativeReservesBytes) =
-            pump.readTwaReserves(address(mWell), startCumulativeReserves2, lastTimestamp2);
+            pump.readTwaReserves(address(mWell), startCumulativeReserves2, lastTimestamp2, new bytes(0));
 
         assertApproxEqAbs(twaReserves[0], 1e6, 1);
         assertApproxEqAbs(twaReserves[1], 1.5e6, 1);

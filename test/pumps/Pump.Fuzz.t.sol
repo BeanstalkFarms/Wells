@@ -62,7 +62,7 @@ contract PumpFuzzTest is TestHelper, GeoEmaAndCumSmaPump {
         mWell.update(address(pump), updateReserves, new bytes(0));
 
         // Read a snapshot from the Pump
-        bytes memory startCumulativeReserves = pump.readCumulativeReserves(address(mWell));
+        bytes memory startCumulativeReserves = pump.readCumulativeReserves(address(mWell), new bytes(0));
         uint startTimestamp = block.timestamp;
 
         // Fast-forward time and update the Pump with new reserves.
@@ -90,7 +90,7 @@ contract PumpFuzzTest is TestHelper, GeoEmaAndCumSmaPump {
 
         // readTwaReserves reverts if no time has passed.
         if (timeIncrease > 0) {
-            (uint[] memory twaReserves,) = pump.readTwaReserves(address(mWell), startCumulativeReserves, startTimestamp);
+            (uint[] memory twaReserves,) = pump.readTwaReserves(address(mWell), startCumulativeReserves, startTimestamp, new bytes(0));
             for (uint i; i < n; ++i) {
                 console.log("TWA RESERVES", i, twaReserves[i]);
                 if (lastReserves[i] > 1e24) {
